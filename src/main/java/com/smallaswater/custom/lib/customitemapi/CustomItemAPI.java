@@ -94,7 +94,7 @@ public class CustomItemAPI implements Listener{
 
             for (RuntimeItemMapping.RuntimeEntry entry : legacy2Runtime.values()) {
                 if (this.customItems.containsKey(entry.getRuntimeId())) {
-                    paletteBuffer.putString(entry.getIdentifier());
+                    paletteBuffer.putString(("customitem:" + entry.getIdentifier()).toLowerCase());
                     paletteBuffer.putLShort(entry.getRuntimeId());
                     // Component item
                     paletteBuffer.putBoolean(true);
@@ -132,7 +132,7 @@ public class CustomItemAPI implements Listener{
             CompoundTag data = itemCustom.getComponentsData();
             data.putShort("minecraft:identifier", i);
 
-            itemComponentPacket.entries[i] = new ItemComponentPacket.Entry(item.getName(), data);
+            itemComponentPacket.entries[i] = new ItemComponentPacket.Entry(("customitem:" + item.getName()).toLowerCase(), data);
 
             i++;
         }
