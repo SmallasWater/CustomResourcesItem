@@ -13,12 +13,12 @@ public class TestI extends ItemCustomTool {
     public TestI() {
         this(0,1);
     }
-    public TestI(int meta) {
+    public TestI(Integer meta) {
         this(meta,1);
     }
 
-    public TestI(int meta,int count) {
-        super(1011,meta,count,"测试","npcAirElement");
+    public TestI(Integer meta,int count) {
+        super(1011,meta,count,"测试","npcAirElement".toLowerCase());
     }
 
 

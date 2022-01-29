@@ -15,11 +15,13 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 /**
@@ -31,51 +33,65 @@ public class CustomItem extends PluginBase {
     @Override
     public void onEnable() {
        initFile();
-        Path itemPath = this.getDataFolder().toPath().resolve("items");
-        try {
-            if (!Files.isDirectory(itemPath, LinkOption.NOFOLLOW_LINKS)) {
-                Files.deleteIfExists(itemPath);
-                Files.createDirectory(itemPath);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        List<ResourcePack> packs = new ObjectArrayList<>();
-        try {
-            packs.add(new ItemResourcePack(itemPath));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+//        Path itemPath = this.getDataFolder().toPath().resolve("items");
 //        try {
-//
+//            if (!Files.isDirectory(itemPath, LinkOption.NOFOLLOW_LINKS)) {
+//                Files.deleteIfExists(itemPath);
+//                Files.createDirectory(itemPath);
+//            }
 //        } catch (IOException e) {
 //            throw new RuntimeException(e);
 //        }
-        if (!packs.isEmpty()) {
-            ResourcePackManager manager = this.getServer().getResourcePackManager();
-            try {
-                Field f1 = ResourcePackManager.class.getDeclaredField("resourcePacksById");
-                f1.setAccessible(true);
-                Map<UUID, ResourcePack> byId = (Map<UUID, ResourcePack>) f1.get(manager);
-                packs.forEach(pack -> byId.put(pack.getPackId(), pack));
-
-                Field f2 = ResourcePackManager.class.getDeclaredField("resourcePacks");
-                f2.setAccessible(true);
-                packs.addAll(Arrays.asList((ResourcePack[]) f2.get(manager)));
-                f2.set(manager, packs.toArray(new ResourcePack[0]));
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
-
-
-
-
-        }
+//        List<ResourcePack> packs = new ObjectArrayList<>();
+//        try {
+//            packs.add(new ItemResourcePack(itemPath));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+////        try {
+////
+////        } catch (IOException e) {
+////            throw new RuntimeException(e);
+////        }
+//        if (!packs.isEmpty()) {
+//            ResourcePackManager manager = this.getServer().getResourcePackManager();
+//            try {
+//                Field f1 = ResourcePackManager.class.getDeclaredField("resourcePacksById");
+//                f1.setAccessible(true);
+//                Map<UUID, ResourcePack> byId = (Map<UUID, ResourcePack>) f1.get(manager);
+//                packs.forEach(pack -> byId.put(pack.getPackId(), pack));
+//
+//                Field f2 = ResourcePackManager.class.getDeclaredField("resourcePacks");
+//                f2.setAccessible(true);
+//                packs.addAll(Arrays.asList((ResourcePack[]) f2.get(manager)));
+//                f2.set(manager, packs.toArray(new ResourcePack[0]));
+//            } catch (NoSuchFieldException | IllegalAccessException e) {
+//                e.printStackTrace();
+//            }
+//
+//
+//
+//
+//        }
 
         CustomItemAPI itemAPI = new CustomItemAPI(this);
         itemAPI.registerCustomItem(1011, TestI.class);
         this.getServer().getPluginManager().registerEvents(itemAPI, this);
+//        for (ResourcePack pack : this.getServer().getResourcePackManager().getResourceStack()) {
+//            if (pack instanceof ItemResourcePack) {
+//                ItemResourcePack itemRes = (ItemResourcePack) pack;
+//                Path path = this.getDataFolder().toPath().resolve("resources");
+//                if(!new File(this.getDataFolder()+"/resources").exists()){
+//                    new File(this.getDataFolder()+"/resources").mkdirs();
+//                }
+//                try (OutputStream outputStream = Files.newOutputStream(path.resolve("自定义材质包.mcpack"), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+//                    outputStream.write(itemRes.getData());
+//                } catch (IOException e) {
+//                    this.getLogger().alert("Unable to dump resource pack", e);
+//                }
+//            }
+//        }
 
     }
     public void initFile(){

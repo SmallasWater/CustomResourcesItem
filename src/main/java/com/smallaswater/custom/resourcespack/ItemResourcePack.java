@@ -60,7 +60,9 @@ public class ItemResourcePack implements ResourcePack {
             zos.setLevel(Deflater.BEST_COMPRESSION);
             byte[] buffer;
 
-
+            StringBuilder builder1 = new StringBuilder();
+            builder1.append("{\"resource_pack_name\": \"自定义物品材质\",\"texture_name\":\"atlas.items\"," +
+                    "\"texture_data\":{");
             zos.putNextEntry(new ZipEntry("manifest.json"));
             builder = new StringBuilder();
             builder.append("{\"format_version\":1,\"header\":{\"uuid\":\"");
@@ -71,20 +73,31 @@ public class ItemResourcePack implements ResourcePack {
 
             buffer = builder.toString().getBytes();
             zos.write(buffer, 0, buffer.length);
+
             Files.walk(itemPath, 1).filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) && path.toString().toLowerCase().endsWith(".png")).forEach(path -> {
             try (InputStream fis = Files.newInputStream(path, StandardOpenOption.READ)) {
                 byte[] bytes = new byte[fis.available()];
                 fis.read(bytes);
+                if(i == 0){
+                    i++;
+                }else{
+                    builder1.append(",");
+                }
+                String n = path.getFileName().toString().split("\\.")[0];
+                builder1.append("\"").append(n.toLowerCase()).append("\":{\"textures\":\"").append("textures/items/").append(path.getFileName().toString().toLowerCase()).append("\"}");
+                zos.putNextEntry(new ZipEntry("textures/items/" +path.getFileName().toString().toLowerCase()));
 
-                zos.putNextEntry(new ZipEntry("textures/items/" +path.getFileName()));
                 zos.write(bytes, 0, bytes.length);
             } catch (Exception ignore) {
 
             }
+
         });
+            builder1.append("}}");
 //
-
-
+            zos.putNextEntry(new ZipEntry("textures/item_texture.json"));
+            buffer = builder1.toString().getBytes();
+            zos.write(buffer, 0, buffer.length);
             zos.finish();
             this.data = baos.toByteArray();
         }
@@ -92,6 +105,7 @@ public class ItemResourcePack implements ResourcePack {
         this.sha256 = HASHER.digest(this.data);
     }
 
+    int i = 0;
     public byte[] getData() {
         return this.data;
     }
