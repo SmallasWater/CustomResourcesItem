@@ -1,0 +1,5 @@
+name: CustomItem
+main: com.smallaswater.custom.CustomItem
+version: 1.0.0
+author: 若水
+api: 1.0.13
