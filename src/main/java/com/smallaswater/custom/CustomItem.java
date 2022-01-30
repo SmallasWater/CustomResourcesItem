@@ -55,7 +55,7 @@ public class CustomItem extends PluginBase {
         }else{
             c.itemAPI.registerCustomItem(item.getId(), item.getClass());
             registerResources(fileName,path);
-            build();
+
         }
     }
 
@@ -68,6 +68,9 @@ public class CustomItem extends PluginBase {
     }
 
     private static void build(){
+        if(c.getServer().getPluginManager().getPlugin("BlocklyNukkit") != null){
+            return;
+        }
         try {
             resourcePack = new ItemResourcePack(buildImg, UUID.randomUUID(), UUID.randomUUID(), 2);
         } catch (Exception e) {
