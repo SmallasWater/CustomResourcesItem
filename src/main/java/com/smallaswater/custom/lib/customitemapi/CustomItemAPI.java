@@ -12,6 +12,7 @@ import cn.nukkit.item.RuntimeItems;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.plugin.Plugin;
 import cn.nukkit.utils.BinaryStream;
+import com.blocklynukkit.loader.script.BlockItemManager;
 import com.smallaswater.custom.lib.customitemapi.item.ItemCustom;
 import com.smallaswater.custom.lib.customitemapi.network.protocol.ItemComponentPacket;
 import com.smallaswater.custom.lib.customitemapi.network.protocol.ResourcePackStackPacket;
@@ -46,8 +47,9 @@ public class CustomItemAPI implements Listener{
 
 
 
-    public void registerCustomItem(int id, @NotNull Class<? extends ItemCustom> c) {
+    public void registerCustomItem(int id, Class<? extends Item> c) {
         this.customItems.put(id, c);
+
         Item.list[id] = c;
 
         try {

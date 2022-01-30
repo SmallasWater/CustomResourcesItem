@@ -4,6 +4,7 @@ import cn.nukkit.resourcepacks.ResourcePack;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import com.smallaswater.custom.CustomItem;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
@@ -51,6 +52,12 @@ public class ItemResourcePack implements ResourcePack {
             StringBuilder builder1 = new StringBuilder();
             builder1.append("{\"resource_pack_name\": \"custom Item\",\"texture_name\":\"atlas.items\"," +
                     "\"texture_data\":{");
+            zos.putNextEntry(new ZipEntry("pack_icon.png"));
+            try (InputStream fis = CustomItem.getItemAPI().getResource("pack_icon.png")){
+                byte[] bytes = new byte[fis.available()];
+                fis.read(bytes);
+                zos.write(bytes, 0, bytes.length);
+            }
             zos.putNextEntry(new ZipEntry("manifest.json"));
             builder = new StringBuilder();
             builder.append("{\"format_version\":").append(version).append(",\"header\":{\"uuid\":\"");
@@ -83,6 +90,7 @@ public class ItemResourcePack implements ResourcePack {
         });
             builder1.append("}}");
 //
+
             zos.putNextEntry(new ZipEntry("textures/item_texture.json"));
             buffer = builder1.toString().getBytes();
             zos.write(buffer, 0, buffer.length);

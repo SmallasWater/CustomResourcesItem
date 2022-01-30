@@ -2,8 +2,10 @@ package com.smallaswater.custom;
 
 
 import cn.nukkit.Server;
+import cn.nukkit.item.Item;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.resourcepacks.ResourcePackManager;
+import com.blocklynukkit.loader.script.BlockItemManager;
 import com.smallaswater.custom.lib.customitemapi.CustomItemAPI;
 import com.smallaswater.custom.resourcespack.ItemResourcePack;
 
@@ -27,27 +29,45 @@ public class CustomItem extends PluginBase {
 
     private CustomItemAPI itemAPI;
 
+    private static CustomItem c;
+
     private static LinkedHashMap<String,File> buildImg = new LinkedHashMap<>();
 
     @Override
     public void onEnable() {
+        c = this;
         itemAPI = new CustomItemAPI(this);
-        this.getServer().getPluginManager().registerEvents(itemAPI, this);
+        if(c.getServer().getPluginManager().getPlugin("BlocklyNukkit") == null) {
+            this.getServer().getPluginManager().registerEvents(itemAPI, this);
+        }
 
     }
 
-    public CustomItemAPI getItemAPI() {
-        return itemAPI;
+    public static CustomItem getItemAPI() {
+        return c;
     }
 
-    public static void registerResources(String fileName,String path){
+    public static void registerAdapter(Item item, String fileName, String path){
+        if(c.getServer().getPluginManager().getPlugin("BlocklyNukkit") != null){
+            BlockItemManager blockItemManager = new BlockItemManager(null);
+            blockItemManager.registerSimpleItem(item,"items",false,true);
+            blockItemManager.addItemTexture(item.getId(),path);
+        }else{
+            c.itemAPI.registerCustomItem(item.getId(), item.getClass());
+            registerResources(fileName,path);
+            build();
+        }
+    }
+
+
+    private static void registerResources(String fileName, String path){
         File file = new File(path);
         if(file.isFile()){
             buildImg.put(fileName,file);
         }
     }
 
-    public static void build(){
+    private static void build(){
         try {
             resourcePack = new ItemResourcePack(buildImg, UUID.randomUUID(), UUID.randomUUID(), 2);
         } catch (Exception e) {
