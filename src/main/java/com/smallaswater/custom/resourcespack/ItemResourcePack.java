@@ -4,8 +4,10 @@ import cn.nukkit.resourcepacks.ResourcePack;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -15,6 +17,7 @@ import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.UUID;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
@@ -24,6 +27,8 @@ public class ItemResourcePack implements ResourcePack {
 
     private static final MessageDigest HASHER;
 
+    public ZipOutputStream zipOutputStream;
+
     static {
         try {
             HASHER = MessageDigest.getInstance("SHA-256");
@@ -31,51 +36,34 @@ public class ItemResourcePack implements ResourcePack {
             throw new RuntimeException(e);
         }
     }
-
-    private UUID uuid;
+    private final UUID uuid;
     private final byte[] data;
     private final byte[] sha256;
 
-    public ItemResourcePack(Path itemPath) throws Exception {
-        HashFunction hasher = Hashing.md5();
-        String md5 = hasher.hashBytes(itemPath.getFileName().toString().getBytes()).toString();
-        Preconditions.checkArgument(md5.length() == 32, "Invalid MD5");
-        md5 = md5.toLowerCase();
-//        Preconditions.checkNotNull(data, "data");
-//        Preconditions.checkArgument(data.length > 0, "Invalid data");
+    public ItemResourcePack(LinkedHashMap<String, File> buildImg, @NotNull UUID header, @NotNull UUID modules, int version) throws Exception {
 
-        StringBuilder builder = new StringBuilder(36);
-        builder.append(md5, 0, 8);
-        builder.append("-");
-        builder.append(md5, 8, 12);
-        builder.append("-");
-        builder.append(md5, 12, 16);
-        builder.append("-");
-        builder.append(md5, 16, 20);
-        builder.append("-");
-        builder.append(md5.substring(20));
-        String uuid = builder.toString();
-        this.uuid = UUID.fromString("691d504c-fd0e-0626-cd3b-058e5682dd1b");
+        StringBuilder builder;
+
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ZipOutputStream zos = new ZipOutputStream(baos)) {
             zos.setLevel(Deflater.BEST_COMPRESSION);
             byte[] buffer;
-
+            uuid = header;
             StringBuilder builder1 = new StringBuilder();
-            builder1.append("{\"resource_pack_name\": \"自定义物品材质\",\"texture_name\":\"atlas.items\"," +
+            builder1.append("{\"resource_pack_name\": \"custom Item\",\"texture_name\":\"atlas.items\"," +
                     "\"texture_data\":{");
             zos.putNextEntry(new ZipEntry("manifest.json"));
             builder = new StringBuilder();
-            builder.append("{\"format_version\":1,\"header\":{\"uuid\":\"");
-            builder.append(uuid);
-            builder.append("\",\"name\":\"自定义物品材质\",\"version\":[0,0,1],\"description\":\"\"},\"modules\":[{\"description\":\"\",\"version\":[0,0,1],\"uuid\":\"");
-            builder.append("691d504c-fd0e-0626-cd3b-058e5682dd1b");
+            builder.append("{\"format_version\":").append(version).append(",\"header\":{\"uuid\":\"");
+            builder.append(header.toString());
+            builder.append("\",\"name\":\"custom Item\",\"version\":[0,0,"+version+"],\"min_engine_version\":[1,18,0],\"description\":\"custom item build\"},\"modules\":[{\"description\":\"\",\"version\":[0,0,"+version+"],\"uuid\":\"");
+            builder.append(modules);
             builder.append("\",\"type\":\"resources\"}]}");
 
-            buffer = builder.toString().getBytes();
+            buffer = new String(builder.toString().getBytes(), StandardCharsets.UTF_8).getBytes();
             zos.write(buffer, 0, buffer.length);
 
-            Files.walk(itemPath, 1).filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) && path.toString().toLowerCase().endsWith(".png")).forEach(path -> {
-            try (InputStream fis = Files.newInputStream(path, StandardOpenOption.READ)) {
+            buildImg.values().forEach(path->{
+            try (InputStream fis = Files.newInputStream(path.toPath(), StandardOpenOption.READ)) {
                 byte[] bytes = new byte[fis.available()];
                 fis.read(bytes);
                 if(i == 0){
@@ -83,9 +71,9 @@ public class ItemResourcePack implements ResourcePack {
                 }else{
                     builder1.append(",");
                 }
-                String n = path.getFileName().toString().split("\\.")[0];
-                builder1.append("\"").append(n.toLowerCase()).append("\":{\"textures\":\"").append("textures/items/").append(path.getFileName().toString().toLowerCase()).append("\"}");
-                zos.putNextEntry(new ZipEntry("textures/items/" +path.getFileName().toString().toLowerCase()));
+                String n = path.toPath().getFileName().toString().split("\\.")[0];
+                builder1.append("\"").append(n.toLowerCase()).append("\":{\"textures\":\"").append("textures/items/").append(path.toPath().getFileName().toString().toLowerCase()).append("\"}");
+                zos.putNextEntry(new ZipEntry("textures/items/" +path.toPath().getFileName().toString().toLowerCase()));
 
                 zos.write(bytes, 0, bytes.length);
             } catch (Exception ignore) {
@@ -100,6 +88,7 @@ public class ItemResourcePack implements ResourcePack {
             zos.write(buffer, 0, buffer.length);
             zos.finish();
             this.data = baos.toByteArray();
+
         }
 
         this.sha256 = HASHER.digest(this.data);
